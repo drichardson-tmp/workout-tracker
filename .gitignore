@@ -27,6 +27,23 @@ go.work.sum
 # env file
 .env
 
+# Node / Bun
+node_modules/
+package-lock.json
+
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Build output
+bin/
+main
+workout-tracker
+
+# Generated files
+openapi.json
+frontend/src/generated/api.ts
+
+# Database
+*.db
+*.sqlite

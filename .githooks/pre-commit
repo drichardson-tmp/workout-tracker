@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "→ go build"
+go build ./...
+
+echo "→ go vet"
+go vet ./...
+
+echo "→ biome check"
+cd frontend && ./node_modules/.bin/biome check --write .
