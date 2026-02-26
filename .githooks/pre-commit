@@ -1,11 +1,43 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# ── Go ────────────────────────────────────────────────────────────────────────
+
 echo "→ go build"
 go build ./...
 
 echo "→ go vet"
 go vet ./...
 
+# ── Frontend ──────────────────────────────────────────────────────────────────
+
 echo "→ biome check"
-cd frontend && ./node_modules/.bin/biome check --write .
+(cd frontend && ./node_modules/.bin/biome check --write .)
+
+# ── Huma: generated OpenAPI + TypeScript client ───────────────────────────────
+# genschema uses nil DB so no database connection required.
+
+echo "→ generate API schema"
+go run ./cmd/genschema > openapi.json
+(cd frontend && bun run generate)
+
+# ── Atlas: GORM models → migration diff ──────────────────────────────────────
+# Skipped if Postgres is not reachable (dev DB required by Atlas).
+
+echo "→ atlas migration check"
+MIGRATION_COUNT_BEFORE=$(find "$REPO_ROOT/migrations" -name "*.sql" 2>/dev/null | wc -l | tr -d ' ')
+
+if ! atlas migrate diff _precommit_check --env local 2>/tmp/atlas_check_err; then
+  echo "⚠  Atlas check skipped (Postgres unreachable?): $(cat /tmp/atlas_check_err)"
+else
+  MIGRATION_COUNT_AFTER=$(find "$REPO_ROOT/migrations" -name "*.sql" 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$MIGRATION_COUNT_AFTER" -gt "$MIGRATION_COUNT_BEFORE" ]; then
+    rm -f "$REPO_ROOT/migrations"/*_precommit_check.sql
+    git checkout -- migrations/atlas.sum 2>/dev/null || true
+    echo "✗ GORM models have uncommitted schema changes. Run: make migrate-new name=<description>"
+    exit 1
+  fi
+fi

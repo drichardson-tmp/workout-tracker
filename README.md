@@ -26,7 +26,7 @@ A small personal project for learning and experimenting with a specific modern G
 - **Biome** — linter and formatter for the frontend (replaces ESLint + Prettier)
 - **Docker** — runs Postgres and Zitadel locally
 - **Make** — task runner (`make help` lists all targets)
-- **Git hooks** (`.githooks/`) — runs `go build`, `go vet`, and Biome on commit
+- **Git hooks** (`.githooks/`) — on commit: `go build`, `go vet`, Biome, generated API freshness check, and Atlas migration drift check
 
 ## Getting Started
 
