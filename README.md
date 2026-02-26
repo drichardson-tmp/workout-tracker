@@ -1,182 +1,40 @@
 # Workout Tracker
 
-A full-stack workout tracking application built with Go (Gin), Vue.js, PostgreSQL, and Biome.js.
+A small personal project for learning and experimenting with a specific modern Go + Vue stack. Tooling choices prioritise fast iteration over production hardening (or truly safe user monitoring, having chosen self-hosted Zitadel).
 
 ## Tech Stack
 
 ### Backend
-- **Go 1.23** with Gin framework
-- **PostgreSQL 18** for database
-- RESTful API architecture
+- **Go 1.25** — application server
+- **Gin** — HTTP router
+- **Huma v2** — OpenAPI schema generation and request/response validation on top of Gin
+- **GORM** — ORM for model definitions and query building
+- **PostgreSQL** — primary database (run locally via Docker)
+- **Atlas** — database migration diffing and application, driven from GORM models
+- **Zitadel** — OIDC authentication and authorisation (token introspection)
+- **godotenv** — `.env` file loading for local development
 
 ### Frontend
-- **Vue 3** with Composition API
-- **Vite** for development and building
-- **Biome.js** for linting and formatting
-- **Vue Router** for navigation
-- **Axios** for API calls
+- **Vue 3** (`<script setup>`) — UI framework
+- **Vite** — dev server and bundler
+- **Vue Router** — client-side routing
+- **Axios** — HTTP client
+- **openapi-typescript** — generates a typed API client from the backend's `openapi.json`
 
-### Infrastructure
-- **Docker & Docker Compose** for containerization
-- PostgreSQL in Docker
-
-## Project Structure
-
-```
-workout-tracker/
-├── main.go                 # Go backend entry point
-├── go.mod                  # Go dependencies
-├── Dockerfile             # Backend container
-├── docker-compose.yml     # Docker orchestration
-├── init.sql              # Database initialization
-└── frontend/
-    ├── package.json      # Node dependencies
-    ├── biome.json       # Biome configuration
-    ├── vite.config.js   # Vite configuration
-    ├── index.html       # HTML entry point
-    └── src/
-        ├── main.js      # Vue app entry
-        ├── App.vue      # Root component
-        └── views/       # Page components
-```
+### Tooling
+- **Bun** — frontend package manager and script runner
+- **Biome** — linter and formatter for the frontend (replaces ESLint + Prettier)
+- **Docker** — runs Postgres and Zitadel locally
+- **Make** — task runner (`make help` lists all targets)
+- **Git hooks** (`.githooks/`) — runs `go build`, `go vet`, and Biome on commit
 
 ## Getting Started
 
-### Prerequisites
-- Go 1.23 or later
-- Node.js 18 or later
-- Docker and Docker Compose
-- Make (optional)
-
-### Backend Setup
-
-1. **Install Go dependencies:**
-   ```bash
-   go mod download
-   ```
-
-2. **Start PostgreSQL with Docker:**
-   ```bash
-   docker-compose up postgres -d
-   ```
-
-3. **Run the backend:**
-   ```bash
-   go run main.go
-   ```
-
-   The backend will be available at `http://localhost:8080`
-
-### Frontend Setup
-
-1. **Navigate to frontend directory:**
-   ```bash
-   cd frontend
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Run development server:**
-   ```bash
-   npm run dev
-   ```
-
-   The frontend will be available at `http://localhost:3000`
-
-### Using Docker Compose (Recommended)
-
-Start everything with one command:
-
-```bash
-docker-compose up --build
+```sh
+make install       # install Go + frontend deps, configure git hooks
+make db-start      # start local Postgres in Docker
+make migrate-up    # apply migrations
+make dev           # run backend + frontend concurrently
 ```
 
-This will start:
-- PostgreSQL on port 5432
-- Backend API on port 8080
-
-For the frontend, run separately:
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## Development
-
-### Backend Development
-
-The Go backend uses Gin framework and connects to PostgreSQL. Main features:
-- Health check endpoint: `GET /health`
-- Workouts API: `GET /api/workouts`, `POST /api/workouts`
-- CORS enabled for frontend development
-
-### Frontend Development
-
-The Vue frontend includes:
-- Vue Router for navigation
-- Axios for API calls
-- Biome.js for code quality
-
-**Available Scripts:**
-```bash
-npm run dev        # Start dev server
-npm run build      # Build for production
-npm run preview    # Preview production build
-npm run lint       # Lint with Biome
-npm run lint:fix   # Fix linting issues
-npm run format     # Format code
-```
-
-### Database
-
-PostgreSQL is configured with:
-- Database: `workout_tracker`
-- User: `postgres`
-- Password: `postgres`
-- Port: `5432`
-
-The `init.sql` file creates initial tables:
-- `workouts` - Store workout sessions
-- `exercises` - Store individual exercises
-
-## API Endpoints
-
-### Health Check
-```
-GET /health
-```
-
-### Workouts
-```
-GET  /api/workouts      # Get all workouts
-POST /api/workouts      # Create a new workout
-```
-
-## Environment Variables
-
-### Backend
-- `DATABASE_URL` - PostgreSQL connection string (default: `postgres://postgres:postgres@localhost:5432/workout_tracker?sslmode=disable`)
-- `PORT` - Server port (default: `8080`)
-
-## Production Build
-
-### Backend
-```bash
-docker build -t workout-tracker-backend .
-docker run -p 8080:8080 workout-tracker-backend
-```
-
-### Frontend
-```bash
-cd frontend
-npm run build
-# Serve the 'dist' directory with your preferred static server
-```
-
-## License
-
-MIT
+Copy `.env.example` to `.env` and fill in values before running.
