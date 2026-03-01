@@ -1,41 +1,29 @@
 <script setup>
-import axios from 'axios'
-import { onMounted, ref } from 'vue'
-import { useAuth } from '../composables/useAuth.js'
+import useSWRV from 'swrv'
+import { ref } from 'vue'
+import { api } from '@/api/client'
+import { useAuth } from '@/composables/useAuth.js'
 
 const { userId } = useAuth()
 
-const workouts = ref([])
-const loading = ref(true)
+const fetcher = () => api.GET('/api/v1/workouts').then(({ data }) => data)
+const { data: workouts, isValidating: loading, mutate } = useSWRV('/api/v1/workouts', fetcher)
+
 const newWorkout = ref({ name: '', description: '', duration_minutes: 0 })
 const error = ref('')
 
-const fetchWorkouts = async () => {
-  try {
-    const { data } = await axios.get('/api/workouts')
-    workouts.value = data
-  } catch (e) {
-    console.error('Failed to fetch workouts:', e)
-  } finally {
-    loading.value = false
-  }
-}
-
 const createWorkout = async () => {
   error.value = ''
-  try {
-    await axios.post('/api/workouts', {
-      ...newWorkout.value,
-      user_id: userId.value,
-    })
-    newWorkout.value = { name: '', description: '', duration_minutes: 0 }
-    await fetchWorkouts()
-  } catch (e) {
-    error.value = e.response?.data?.detail ?? 'Failed to create workout.'
+  const { error: apiErr } = await api.POST('/api/v1/workouts', {
+    body: { ...newWorkout.value, user_id: userId.value },
+  })
+  if (apiErr) {
+    error.value = apiErr.detail ?? 'Failed to create workout.'
+    return
   }
+  newWorkout.value = { name: '', description: '', duration_minutes: 0 }
+  mutate()
 }
-
-onMounted(fetchWorkouts)
 </script>
 
 <template>
@@ -61,7 +49,7 @@ onMounted(fetchWorkouts)
     <div class="workout-list">
       <h2>Your Workouts</h2>
       <div v-if="loading">Loading workouts...</div>
-      <div v-else-if="workouts.length === 0" class="empty">
+      <div v-else-if="!workouts?.length" class="empty">
         No workouts yet. Create your first workout above!
       </div>
       <div v-else class="workouts-grid">

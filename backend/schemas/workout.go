@@ -51,7 +51,8 @@ type GetWorkoutOutput struct {
 }
 
 type CreateWorkoutOutput struct {
-	Body *WorkoutResponse
+	Status int
+	Body   *WorkoutResponse
 }
 
 type UpdateWorkoutOutput struct {

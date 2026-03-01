@@ -1,8 +1,8 @@
 <script setup>
-import axios from 'axios'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuth } from '../composables/useAuth.js'
+import { api } from '@/api/client'
+import { useAuth } from '@/composables/useAuth.js'
 
 const router = useRouter()
 const { login } = useAuth()
@@ -17,8 +17,14 @@ const submit = async () => {
   error.value = ''
   try {
     // Look up existing user by email first.
-    const { data: found } = await axios.get(`/api/users?email=${encodeURIComponent(email.value)}`)
-    if (found.length > 0) {
+    const { data: found, error: listErr } = await api.GET('/api/v1/users', {
+      params: { query: { email: email.value } },
+    })
+    if (listErr) {
+      error.value = listErr.detail ?? 'Something went wrong.'
+      return
+    }
+    if (found && found.length > 0) {
       login(found[0].id, found[0].name)
       router.push('/workouts')
       return
@@ -28,15 +34,19 @@ const submit = async () => {
       error.value = 'Name is required to create an account.'
       return
     }
-    const { data: created } = await axios.post('/api/users', {
-      email: email.value,
-      name: name.value.trim(),
-      password: 'dev-placeholder',
+    const { data: created, error: createErr } = await api.POST('/api/v1/users', {
+      body: { email: email.value, name: name.value.trim(), password: 'dev-placeholder' },
     })
-    login(created.id, created.name)
+    if (createErr) {
+      error.value = createErr.detail ?? 'Something went wrong.'
+      return
+    }
+    if (created) {
+      login(created.id, created.name)
+    }
     router.push('/workouts')
   } catch (e) {
-    error.value = e.response?.data?.detail ?? 'Something went wrong.'
+    error.value = 'Something went wrong.'
   } finally {
     loading.value = false
   }

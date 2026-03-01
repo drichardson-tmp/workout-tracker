@@ -35,7 +35,8 @@ type GetUserOutput struct {
 }
 
 type CreateUserOutput struct {
-	Body *UserResponse
+	Status int
+	Body   *UserResponse
 }
 
 type ListUsersOutput struct {

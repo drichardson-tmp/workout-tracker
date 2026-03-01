@@ -4,12 +4,13 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/danielgtaylor/huma/v2"
-	"gorm.io/gorm"
 	"workout-tracker/backend/middleware"
 	"workout-tracker/backend/models"
 	"workout-tracker/backend/roles"
 	"workout-tracker/backend/schemas"
+
+	"github.com/danielgtaylor/huma/v2"
+	"gorm.io/gorm"
 )
 
 type UserHandler struct {
@@ -18,6 +19,13 @@ type UserHandler struct {
 
 func NewUserHandler(db *gorm.DB) *UserHandler {
 	return &UserHandler{db: db}
+}
+
+func (h *UserHandler) RegisterRoutes(api huma.API) {
+	v1_0 := huma.NewGroup(api, "/api/v1")
+	huma.Get(v1_0, "/users", h.ListUsers)
+	huma.Get(v1_0, "/users/{userId}", h.GetUser)
+	huma.Post(v1_0, "/users", h.CreateUser)
 }
 
 func (h *UserHandler) ListUsers(ctx context.Context, input *schemas.ListUsersInput) (*schemas.ListUsersOutput, error) {
@@ -59,7 +67,7 @@ func (h *UserHandler) CreateUser(ctx context.Context, input *schemas.CreateUserI
 		return nil, huma.Error500InternalServerError("failed to create user")
 	}
 	r := userToResponse(user)
-	return &schemas.CreateUserOutput{Body: &r}, nil
+	return &schemas.CreateUserOutput{Status: 201, Body: &r}, nil
 }
 
 func userToResponse(u models.User) schemas.UserResponse {

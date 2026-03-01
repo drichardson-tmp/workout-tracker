@@ -1,0 +1,21 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/server ."
+  bin = "./tmp/server"
+  delay = 1000
+  exclude_dir = ["tmp", "frontend", "vendor"]
+  include_ext = ["go"]
+  exclude_regex = ["_test\\.go$"]
+  kill_delay = "0s"
+  rerun = false
+  log = "air.log"
+
+[log]
+  time = false
+
+[color]
+  build = "yellow"
+  runner = "green"
+  watcher = "cyan"

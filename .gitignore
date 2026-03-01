@@ -40,6 +40,8 @@ package-lock.json
 
 # Build output
 bin/
+tmp/
+air.log
 main
 workout-tracker
 

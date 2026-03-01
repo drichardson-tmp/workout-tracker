@@ -19,7 +19,7 @@ func TestListWorkouts_Empty(t *testing.T) {
 	mock.ExpectQuery(`SELECT \* FROM "workouts"`).
 		WillReturnRows(sqlmock.NewRows(workoutCols()))
 
-	resp := api.Get("/api/workouts")
+	resp := api.Get("/api/v1/workouts")
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.JSONEq(t, `[]`, resp.Body.String())
@@ -35,7 +35,7 @@ func TestListWorkouts_WithResults(t *testing.T) {
 		AddRow(int64(2), fixedTime, fixedTime, nil, int64(1), "Evening Yoga", "", 45)
 	mock.ExpectQuery(`SELECT \* FROM "workouts"`).WillReturnRows(rows)
 
-	resp := api.Get("/api/workouts")
+	resp := api.Get("/api/v1/workouts")
 
 	require.Equal(t, http.StatusOK, resp.Code)
 	var body []schemas.WorkoutResponse
@@ -55,7 +55,7 @@ func TestListWorkouts_FilterByUser(t *testing.T) {
 	mock.ExpectQuery(`SELECT \* FROM "workouts"`).
 		WillReturnRows(rows)
 
-	resp := api.Get("/api/workouts?userId=42")
+	resp := api.Get("/api/v1/workouts?userId=42")
 
 	require.Equal(t, http.StatusOK, resp.Code)
 	var body []schemas.WorkoutResponse
@@ -73,7 +73,7 @@ func TestGetWorkout_Found(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows(workoutCols()).
 			AddRow(int64(1), fixedTime, fixedTime, nil, int64(1), "Morning Run", "5km run", 30))
 
-	resp := api.Get("/api/workouts/1")
+	resp := api.Get("/api/v1/workouts/1")
 
 	require.Equal(t, http.StatusOK, resp.Code)
 	var body schemas.WorkoutResponse
@@ -91,7 +91,7 @@ func TestGetWorkout_NotFound(t *testing.T) {
 	mock.ExpectQuery(`SELECT \* FROM "workouts"`).
 		WillReturnRows(sqlmock.NewRows(workoutCols())) // no rows → ErrRecordNotFound
 
-	resp := api.Get("/api/workouts/99")
+	resp := api.Get("/api/v1/workouts/99")
 
 	assert.Equal(t, http.StatusNotFound, resp.Code)
 	require.NoError(t, mock.ExpectationsWereMet())
@@ -106,7 +106,7 @@ func TestCreateWorkout(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
-	resp := api.Post("/api/workouts", map[string]any{
+	resp := api.Post("/api/v1/workouts", map[string]any{
 		"user_id":          1,
 		"name":             "Morning Run",
 		"description":      "5km run",
@@ -130,7 +130,7 @@ func TestUpdateWorkout(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
-	resp := api.Patch("/api/workouts/1", map[string]any{
+	resp := api.Patch("/api/v1/workouts/1", map[string]any{
 		"name":             "New Name",
 		"duration_minutes": 45,
 	})
@@ -149,7 +149,7 @@ func TestDeleteWorkout(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectCommit()
 
-	resp := api.Delete("/api/workouts/1")
+	resp := api.Delete("/api/v1/workouts/1")
 
 	assert.Equal(t, http.StatusNoContent, resp.Code)
 	require.NoError(t, mock.ExpectationsWereMet())

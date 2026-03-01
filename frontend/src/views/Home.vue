@@ -1,21 +1,9 @@
 <script setup>
-import axios from 'axios'
-import { onMounted, ref } from 'vue'
+import useSWRV from 'swrv'
+import { api } from '@/api/client'
 
-const health = ref(null)
-const loading = ref(true)
-
-onMounted(async () => {
-  try {
-    const response = await axios.get('/health')
-    health.value = response.data
-  } catch (error) {
-    console.error('Failed to fetch health status:', error)
-    health.value = { status: 'error' }
-  } finally {
-    loading.value = false
-  }
-})
+const fetcher = () => api.GET('/health').then(({ data }) => data)
+const { data: health, isValidating: loading } = useSWRV('/health', fetcher)
 </script>
 
 <template>

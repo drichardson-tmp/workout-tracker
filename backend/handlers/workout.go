@@ -21,6 +21,15 @@ func NewWorkoutHandler(db *gorm.DB) *WorkoutHandler {
 	return &WorkoutHandler{db: db}
 }
 
+func (h *WorkoutHandler) RegisterRoutes(api huma.API) {
+	v1_0 := huma.NewGroup(api, "/api/v1")
+	huma.Get(v1_0, "/workouts", h.ListWorkouts)
+	huma.Get(v1_0, "/workouts/{workoutId}", h.GetWorkout)
+	huma.Post(v1_0, "/workouts", h.CreateWorkout)
+	huma.Patch(v1_0, "/workouts/{workoutId}", h.UpdateWorkout)
+	huma.Delete(v1_0, "/workouts/{workoutId}", h.DeleteWorkout)
+}
+
 // resolveUserID returns the local user.ID for the current request.
 // When Zitadel auth is active it finds or auto-creates a local User from the
 // token claims. In dev/test mode (no auth context) it returns 0 so callers
@@ -114,7 +123,7 @@ func (h *WorkoutHandler) CreateWorkout(ctx context.Context, input *schemas.Creat
 		return nil, huma.Error500InternalServerError("failed to create workout")
 	}
 	r := workoutToResponse(workout)
-	return &schemas.CreateWorkoutOutput{Body: &r}, nil
+	return &schemas.CreateWorkoutOutput{Status: 201, Body: &r}, nil
 }
 
 func (h *WorkoutHandler) UpdateWorkout(ctx context.Context, input *schemas.UpdateWorkoutInput) (*schemas.UpdateWorkoutOutput, error) {

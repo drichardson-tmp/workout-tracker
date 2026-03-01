@@ -19,7 +19,7 @@ func TestListUsers_Empty(t *testing.T) {
 	mock.ExpectQuery(`SELECT \* FROM "users"`).
 		WillReturnRows(sqlmock.NewRows(userCols()))
 
-	resp := api.Get("/api/users")
+	resp := api.Get("/api/v1/users")
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.JSONEq(t, `[]`, resp.Body.String())
@@ -35,7 +35,7 @@ func TestListUsers_WithResults(t *testing.T) {
 		AddRow(int64(2), fixedTime, fixedTime, nil, nil, "bob@example.com", "Bob", "hash2")
 	mock.ExpectQuery(`SELECT \* FROM "users"`).WillReturnRows(rows)
 
-	resp := api.Get("/api/users")
+	resp := api.Get("/api/v1/users")
 
 	require.Equal(t, http.StatusOK, resp.Code)
 	var body []schemas.UserResponse
@@ -54,7 +54,7 @@ func TestGetUser_Found(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows(userCols()).
 			AddRow(int64(1), fixedTime, fixedTime, nil, nil, "alice@example.com", "Alice", "hash"))
 
-	resp := api.Get("/api/users/1")
+	resp := api.Get("/api/v1/users/1")
 
 	require.Equal(t, http.StatusOK, resp.Code)
 	var body schemas.UserResponse
@@ -74,7 +74,7 @@ func TestGetUser_NotFound(t *testing.T) {
 	mock.ExpectQuery(`SELECT \* FROM "users"`).
 		WillReturnRows(sqlmock.NewRows(userCols())) // no rows → 404
 
-	resp := api.Get("/api/users/99")
+	resp := api.Get("/api/v1/users/99")
 
 	assert.Equal(t, http.StatusNotFound, resp.Code)
 	require.NoError(t, mock.ExpectationsWereMet())
@@ -89,7 +89,7 @@ func TestCreateUser(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
-	resp := api.Post("/api/users", map[string]any{
+	resp := api.Post("/api/v1/users", map[string]any{
 		"email":    "alice@example.com",
 		"name":     "Alice",
 		"password": "supersecret",

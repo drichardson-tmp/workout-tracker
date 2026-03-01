@@ -8,5 +8,3 @@ type Workout struct {
 	Description     string
 	DurationMinutes int
 }
-
-//

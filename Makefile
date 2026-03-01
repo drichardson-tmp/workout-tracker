@@ -7,6 +7,7 @@ help: ## Show this help
 
 install: ## Install all dependencies (Go + bun) and configure git hooks
 	go mod download
+	go install github.com/air-verse/air@latest
 	cd frontend && bun install
 	git config core.hooksPath .githooks
 
@@ -79,14 +80,14 @@ auth-logs: ## Tail Zitadel logs
 
 # ── local dev ─────────────────────────────────────────────────────────────────
 
-dev: ## Run backend and frontend concurrently (Ctrl-C stops both)
+dev: ## Run backend (air) and frontend concurrently (Ctrl-C stops both)
 	@trap 'kill 0' INT TERM EXIT; \
-	go run . & \
+	air & \
 	(cd frontend && bun run dev) & \
 	wait
 
-dev-backend: ## Run the Go server only
-	go run .
+dev-backend: ## Run the Go server with live reload (air)
+	air
 
 dev-frontend: ## Run the Vite dev server only
 	cd frontend && bun run dev
@@ -113,7 +114,13 @@ migrate-status: ## Show applied/pending migration status
 
 # ── build & test ──────────────────────────────────────────────────────────────
 
-build: ## Build the backend binary
+fmt: ## Format all go code
+	go fmt ./...
+
+vet: fmt ## Find common errors
+	go vet ./...
+
+build: vet ## Build the backend binary
 	go build -o bin/server .
 
 test: ## Run Go tests
